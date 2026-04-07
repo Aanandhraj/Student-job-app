@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Dashboard</title>
+<style>
+body { font-family: Arial; background:#f4f6f9; }
+.card { background:white; margin:20px; padding:20px; border-radius:10px; }
+</style>
+</head>
+
+<body>
+
+<h2>🎓 Student Dashboard</h2>
+
+<div class="card">
+  <h3>Profile</h3>
+  <p>Email: <span id="userEmail"></span></p>
+</div>
+
+<div class="card">
+  <h3>Find Jobs</h3>
+  <input id="filterLocation" placeholder="Location">
+  <input id="filterSkill" placeholder="Skill">
+  <button onclick="filterJobs()">Search</button>
+</div>
+
+<div class="card">
+  <h3>Jobs</h3>
+  <div id="jobs"></div>
+</div>
+
+<div class="card">
+  <h3>Applied Jobs</h3>
+  <div id="applied"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = { 
+apiKey: "AIzaSyB2vOec-uC3LsPlpbkMhJBEx4jWQNdd0nk",
+  authDomain: "student-job-app-5e62e.firebaseapp.com",
+  projectId: "student-job-app-5e62e",
+  storageBucket: "student-job-app-5e62e.firebasestorage.app",
+  messagingSenderId: "1003108335497",
+  appId: "1:1003108335497:web:3abb44acb7b9cc174d2b58",
+  measurementId: "G-Y4JEM6R9SC"};
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(user => {
+  if (!user) location.href="index.html";
+  document.getElementById("userEmail").innerText = user.email;
+  loadJobs();
+  loadApplied(user.uid);
+});
+
+function loadJobs() {
+  db.collection("jobs").get().then(data=>{
+    jobs.innerHTML="";
+    data.forEach(doc=>{
+      let j=doc.data();
+      jobs.innerHTML+=`
+      <div>
+        <b>${j.title}</b> - ${j.location}
+        <button onclick="apply('${doc.id}')">Apply</button>
+      </div>`;
+    });
+  });
+}
+
+function apply(id){
+  db.collection("applications").add({jobId:id});
+  alert("Applied!");
+}
+
+function loadApplied(uid){
+  db.collection("applications").get().then(data=>{
+    applied.innerHTML="";
+    data.forEach(doc=>{
+      applied.innerHTML+=`<div>Applied Job ID: ${doc.data().jobId}</div>`;
+    });
+  });
+}
+</script>
+
+</body>
+</html>

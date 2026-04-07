@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Company Dashboard</title>
+
+<style>
+body {
+  font-family: 'Segoe UI';
+  background: linear-gradient(135deg, #2b5876, #4e4376);
+  color: white;
+  text-align: center;
+}
+
+.card {
+  background: white;
+  color: black;
+  margin: 20px auto;
+  padding: 20px;
+  width: 300px;
+  border-radius: 15px;
+}
+
+input, button {
+  margin: 8px;
+  padding: 10px;
+  width: 90%;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  background: #4e4376;
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🏢 Company Dashboard</h2>
+
+<div class="card">
+  <h3>Post Job</h3>
+
+  <input id="title" placeholder="Job Title">
+  <input id="location" placeholder="Location">
+  <input id="skills" placeholder="Skills (comma separated)">
+
+  <button onclick="postJob()">Post Job</button>
+</div>
+
+<div class="card">
+  <h3>Applications Received</h3>
+  <div id="apps"></div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+apiKey: "AIzaSyB2vOec-uC3LsPlpbkMhJBEx4jWQNdd0nk",
+  authDomain: "student-job-app-5e62e.firebaseapp.com",
+  projectId: "student-job-app-5e62e",
+  storageBucket: "student-job-app-5e62e.firebasestorage.app",
+  messagingSenderId: "1003108335497",
+  appId: "1:1003108335497:web:3abb44acb7b9cc174d2b58",
+  measurementId: "G-Y4JEM6R9SC"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// CHECK LOGIN
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    alert("Please login first");
+    window.location = "index.html";
+  } else {
+    loadApplications();
+  }
+});
+
+// ✅ FIXED POST JOB FUNCTION
+function postJob() {
+  const jobTitle = document.getElementById("title").value.trim();
+  const jobLocation = document.getElementById("location").value.trim();
+  const jobSkills = document.getElementById("skills").value.trim();
+
+  if (!jobTitle || !jobLocation || !jobSkills) {
+    alert("Fill all fields");
+    return;
+  }
+
+  db.collection("jobs").add({
+    title: jobTitle,
+    location: jobLocation,
+    skills: jobSkills.split(","),
+    createdAt: new Date()
+  })
+  .then(() => {
+    alert("✅ Job Posted Successfully");
+
+    document.getElementById("title").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("skills").value = "";
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error: " + err.message);
+  });
+}
+
+// LOAD APPLICATIONS
+function loadApplications() {
+  db.collection("applications").get().then(data => {
+    document.getElementById("apps").innerHTML = "";
+
+    data.forEach(doc => {
+      let app = doc.data();
+
+      document.getElementById("apps").innerHTML += `
+        <div>
+          📄 Job ID: ${app.jobId}
+        </div>
+      `;
+    });
+  });
+}
+</script>
+
+</body>
+</html>
